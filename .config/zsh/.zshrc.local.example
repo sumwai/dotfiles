@@ -1,0 +1,14 @@
+# 敏感配置模板 — 复制为 .zshrc.local 后填入真实值
+
+export GITHUB_TOKEN="your-github-pat-here"
+export GITHUB_USERNAME="your-github-username"
+
+export SUPABASE_URL="your-supabase-url"
+export SUPABASE_SERVICE_KEY="your-supabase-service-key"
+export SUPABASE_ANON_KEY="your-supabase-anon-key"
+export SUPABASE_ACCESS_TOKEN="your-supabase-access-token"
+
+export VERCEL_TOKEN="your-vercel-token"
+
+# SSH 隧道别名
+# alias uiboard="ssh -N -L 18789:127.0.0.1:18789 user@your-server-ip"

@@ -1,0 +1,35 @@
+# 敏感配置
+.config/zsh/.zshrc.local
+.config/claude/
+!config/claude/settings.json.example
+.config/opencode/opencode.json
+!config/opencode/opencode.json.example
+.config/xray-client/
+.config/shadowrocket/
+.config/v2rayu/
+.config/alma/mcp.json
+.openclaw/
+.config/crush/crush.db
+.config/cagent/
+.config/agents/
+.config/trae-cn/
+.config/Cursor/
+.config/icube-remote-ssh/
+
+# SSH
+.ssh/*
+!.ssh/config.example
+
+# Shell 运行时
+.zsh_history
+.config/zsh/.zcompdump*
+.config/zsh/proxy.zsh
+
+# 系统
+.DS_Store
+*.log
+*.swp
+*~
+*.bak
+node_modules/
+__pycache__/
