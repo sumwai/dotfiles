@@ -11,14 +11,33 @@ NC='\033[0m'
 info()  { echo -e "${GREEN}[INFO]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC} $*"; }
 
+# GitHub 加速代理（gh-proxy）
+GH_PROXY="https://gh-proxy.com"
+
+git_clone() {
+    # 通过 gh-proxy 加速 GitHub clone
+    local repo="$1" dst="$2"
+    if git clone "${GH_PROXY}/https://github.com/${repo}.git" "$dst" 2>/dev/null; then
+        return 0
+    else
+        warn "gh-proxy 加速失败，尝试直连..."
+        git clone "https://github.com/${repo}.git" "$dst"
+    fi
+}
+
 # ==================== Homebrew ====================
 if ! command -v brew &>/dev/null; then
     info "安装 Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    /bin/bash -c "$(curl -fsSL "${GH_PROXY}/https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh")"
     eval "$(/opt/homebrew/bin/brew shellenv zsh)"
 else
     info "Homebrew 已安装"
 fi
+
+# 配置 Homebrew 镜像源（清华）
+info "配置 Homebrew 清华镜像..."
+export HOMEBREW_API_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api"
+export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles"
 
 # ==================== Formulae ====================
 FORMULAE=(
@@ -45,10 +64,48 @@ CASKS=(
 info "安装 casks: ${CASKS[*]}"
 brew install --cask "${CASKS[@]}" 2>/dev/null || true
 
+# ==================== 镜像源配置 ====================
+info "配置各工具镜像源..."
+
+# npm 淘宝镜像
+if command -v npm &>/dev/null; then
+    npm config set registry https://registry.npmmirror.com 2>/dev/null || true
+fi
+
+# pnpm 淘宝镜像
+if command -v pnpm &>/dev/null; then
+    pnpm config set registry https://registry.npmmirror.com 2>/dev/null || true
+fi
+
+# pip 清华镜像
+if command -v pip3 &>/dev/null; then
+    pip3 config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple 2>/dev/null || true
+fi
+
+# Go 代理（goproxy.cn）
+if command -v go &>/dev/null; then
+    go env -w GOPROXY=https://goproxy.cn,direct 2>/dev/null || true
+fi
+
+# Cargo/Rust 清华镜像
+if command -v cargo &>/dev/null; then
+    mkdir -p "$HOME/.cargo"
+    cat > "$HOME/.cargo/config.toml" << 'CARGO_EOF'
+[source.crates-io]
+replace-with = "rsproxy"
+
+[source.rsproxy]
+registry = "https://rsproxy.cn/crates.io-index"
+
+[net]
+git-fetch-with-cli = true
+CARGO_EOF
+fi
+
 # ==================== Oh My Zsh ====================
 if [[ ! -d "$HOME/.local/share/oh-my-zsh" ]]; then
-    info "安装 Oh My Zsh..."
-    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    info "安装 Oh My Zsh（国内镜像）..."
+    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL "${GH_PROXY}/https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh")"
 else
     info "Oh My Zsh 已安装"
 fi
@@ -58,12 +115,12 @@ ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.local/share/oh-my-zsh/custom}"
 
 if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]]; then
     info "安装 zsh-autosuggestions..."
-    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+    git_clone zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
 fi
 
 if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]]; then
     info "安装 zsh-syntax-highlighting..."
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+    git_clone zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 fi
 
 # ==================== fzf ====================
@@ -80,12 +137,22 @@ fi
 
 # ==================== Miniconda ====================
 if [[ ! -f "/opt/miniconda3/bin/conda" ]]; then
-    info "安装 Miniconda..."
-    curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh -o /tmp/miniconda.sh
+    info "安装 Miniconda（USTC 镜像）..."
+    curl -fsSL https://mirrors.ustc.edu.cn/anaconda/miniconda/Miniconda3-latest-MacOSX-arm64.sh -o /tmp/miniconda.sh
     bash /tmp/miniconda.sh -b -p /opt/miniconda3
     rm /tmp/miniconda.sh
 else
     info "Miniconda 已安装"
+fi
+
+# 配置 conda 镜像源（清华）
+if command -v conda &>/dev/null; then
+    info "配置 conda 清华镜像..."
+    conda config --set show_channel_urls true
+    conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+    conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+    conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+    conda config --set channel_priority strict
 fi
 
 # ==================== 符号链接 ====================
