@@ -57,7 +57,6 @@ brew install "${FORMULAE[@]}" 2>/dev/null || brew upgrade "${FORMULAE[@]}" 2>/de
 CASKS=(
     claude claude-code
     font-jetbrains-mono-nerd-font
-    ghostty
 )
 
 info "安装 casks: ${CASKS[*]}"
