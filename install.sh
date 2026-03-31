@@ -56,7 +56,6 @@ brew install "${FORMULAE[@]}" 2>/dev/null || brew upgrade "${FORMULAE[@]}" 2>/de
 # ==================== Casks ====================
 CASKS=(
     claude claude-code
-    docker-desktop
     font-jetbrains-mono-nerd-font
     ghostty
 )
@@ -127,6 +126,17 @@ fi
 info "配置 fzf..."
 /opt/homebrew/opt/fzf/install --all --no-bash --no-fish 2>/dev/null || true
 
+# ==================== Node (via nvm) ====================
+export NVM_DIR="${NVM_DIR:-$XDG_DATA_HOME/nvm}"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+if command -v nvm &>/dev/null; then
+    info "通过 nvm 安装最新 LTS Node..."
+    nvm install --lts 2>/dev/null || warn "nvm install 失败，请手动执行: nvm install --lts"
+else
+    warn "nvm 未找到，跳过 Node 安装"
+fi
+
 # ==================== uv ====================
 if ! command -v uv &>/dev/null; then
     info "安装 uv..."
@@ -153,6 +163,12 @@ if command -v conda &>/dev/null; then
     conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
     conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
     conda config --set channel_priority strict
+fi
+
+# ==================== Python (via conda) ====================
+if command -v conda &>/dev/null; then
+    info "通过 conda 安装 Python 3..."
+    conda install -y python=3 2>/dev/null || warn "conda install python 失败，请手动执行: conda install python=3"
 fi
 
 # ==================== 符号链接 ====================
