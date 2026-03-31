@@ -41,7 +41,7 @@ export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bot
 
 # ==================== Formulae ====================
 FORMULAE=(
-    neovim tmux
+    git neovim tmux
     bat btop dust eza fd fzf glow ripgrep tree
     tree-sitter tree-sitter-cli
     tldr wget z zoxide
